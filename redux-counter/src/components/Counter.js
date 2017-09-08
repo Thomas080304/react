@@ -4,10 +4,14 @@ import PropTypes from 'prop-types';
 class Counter extends React.Component{
 
 	render(){
-		const {value,onIncrease,onDecrease} = this.props;
+		const {
+			state,
+			onIncrease,
+			onDecrease} = this.props;
+		const {count} = state;
 		return (
 			<div>
-				<h1>{value}</h1>
+				<h1>{count}</h1>
 				<button onClick={onIncrease}>+</button>
 				<button onClick={onDecrease}>-</button>
 			</div>
