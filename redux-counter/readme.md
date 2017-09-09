@@ -51,6 +51,7 @@ store.subscribe(render);
 
 ```javascript
 /*
+    简单reducer
     @param state,在combineReducer中对应一个具体key的值,
     例如：{count:2}
  */
@@ -62,6 +63,13 @@ function reducer(state,action){
         default:         return state;
     }
 }
+/*
+    combineReducer(复杂reducer)
+    @param {Array},[
+        {counte1:function(state,action){}},
+        {counte2:function(state,action){}}
+    ]
+*/
 function createStore(
     reducer,/*
                 {function} 
