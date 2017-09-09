@@ -3,7 +3,7 @@ redux
 #1  api
 
 ```javascript
-    createStore
+    createStore,
     combineReducer,
     bindActionCreators,
     applyMiddleware,
@@ -65,15 +65,48 @@ function reducer(state,action){
 }
 /*
     combineReducer(复杂reducer)
-    @param {Array},[
-        {counte1:function(state,action){}},
-        {counte2:function(state,action){}}
-    ]
-    处理复杂的数据[
-        {counte1:function(state,action){}},
-        {counte2:function(state,action){}}
-    ]为简单的reducer
+    @param reducers {key,value},
+    {
+        counte1:function(state,action){},
+        counte2:function(state,action){}
+    }
+    处理复杂的数据{
+        counte1:function(state,action){},
+        counte2:function(state,action){}
+    } 为简单的reducer function(state,action){...}
 */
+function combineReducers(reducers){
+/*
+    {
+        counte1:function(state,action){},
+        counte2:function(state,action){}
+    }
+*/
+    const reducerKeys = Object.keys(reducers);
+    const finalReducers = {};
+    for(let i = 0; i < reducerKeys.length; i++){
+        const key = reducerKeys[i];
+        finalReducers[key] = reducers[key];
+    }
+    const finalReducerKeys = Object.keys(finalReducers);
+    return function(state={},action){
+        //纯函数---返回state
+        const hasChanged = false;
+        const nextState = {};
+        for(let i = 0; i < finalReducerKeys.length; i++){
+            const key = finalReducerKeys[i];
+            const reducer = finalReducers[key];
+            const prevState4Key = state[key];
+            const nextState4Key  = reducer(prevState4Key,action);
+            if(nextState4Key !== 'undefined'){
+                throw new Error('get undefined state for key:',key);
+            }
+            nextState[key] = nextState4Key;
+            hasChanged = hasChanged || nextState4Key !== prevState4Key;
+        }
+        return hasChanged ? nextState:state;
+    }
+}
 function createStore(
     reducer,/*
                 {function} 
