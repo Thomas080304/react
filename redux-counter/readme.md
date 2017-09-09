@@ -69,6 +69,10 @@ function reducer(state,action){
         {counte1:function(state,action){}},
         {counte2:function(state,action){}}
     ]
+    处理复杂的数据[
+        {counte1:function(state,action){}},
+        {counte2:function(state,action){}}
+    ]为简单的reducer
 */
 function createStore(
     reducer,/*
