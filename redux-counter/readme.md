@@ -102,11 +102,14 @@ function combineReducers(reducers){
                 throw new Error('get undefined state for key:',key);
             }
             nextState[key] = nextState4Key;
-            hasChanged = hasChanged || nextState4Key !== prevState4Key;
+            hasChanged =hasChanged|| 
+                        nextState4Key !== prevState4Key;
         }
         return hasChanged ? nextState:state;
     }
 }
+
+
 function createStore(
     reducer,/*
                 {function} 
@@ -120,6 +123,7 @@ function createStore(
         let currentState = preloadState;
         const dispatch = function(action){
             try{
+                //function reducer(state,action){return state;}
                 currentState = currentReducer(currentState,action);
             }catch(e){
 
@@ -129,7 +133,119 @@ function createStore(
 
         return {dispatch};
 }
-
 ```
 
-#4  待续
+#4  解析enhancer和compose
+
+```javascript
+/*
+    m1,m2是要compose的enhancer
+    m1 
+        @parame dispatch/getStore,
+        传递redux store实例的getStore和dispatch函数
+        @param next {function}
+        上一次compose出来的结果实质上是包裹了reudx store实例的dispatch，
+        第一次是store.dispatch
+        @param action {Object}
+        用户调用dispatch的action
+*/
+function m1(dispatch,getStore){
+    return function m1In(next){
+        return function(action){
+            next(action);
+        }
+    }
+}
+function m2(dispatch,getStore){
+    return function m2In(next){
+        return function(action){
+            next(action);
+        }
+    }
+}
+[m1In,m2In].reduceRight(function(m1In,m2In){
+    return function(/*store.dispatch(first time)*/){
+        const next = m2In.apply(undefined,arguments);
+        return m1In(next);
+    }
+});
+const composedResult = function(store.dispatch){
+    const next = (function m2In(next){
+        return function m2Action(action){
+            next(action);
+        }
+    })(store.dispatch);
+    return (function m1In(next){
+        return function m1Action(action){
+            next(action)
+        }
+    })(next)
+}
+/*
+    action首先穿m1Action,调用next传递到m2Action,
+    m2Action调用next传递到store.dispatch,调用reducer。
+*/
+
+const store = createStore(
+    reducers,
+    preloadState,
+    applyMiddlewares(m1,m2)
+);
+
+function applyMiddlewares(middlewares){
+    return function(createStore){
+        return function(
+            reducers,
+            preloadState,
+            enhancer/*一般为undefined*/){
+            let store = createStore(reducers,preloadState,enhancer);
+            const middlewareAPI = {
+                getState:store.getState,
+                dispatch:function(action){
+                    store.disaptch(action)
+                }
+            };
+            const chain = middlewares.map(function(middleware){
+                middleware(middlewareAPI);
+            });
+            const dispatch = compose(chain)(store.dispatch);
+            /*dispatch参见上面的composeResult*/
+            return {
+                ...store,
+                dispatch
+            }
+        }
+    }
+}
+
+function createStore(
+    reducers,
+    preloadState,
+    enhancer){
+        if(typeof enhancer === 'function'){
+            return enhancer(createStore)
+            (reducers,preloadState/*,传递undefined*/);
+        }
+        let currentReducers = reducers;
+        let currentState = preloadState;
+
+        const dispatch = function(action){
+            try{
+                currentState = currentRducers(currentState,action);
+            }catch(){}
+        };
+        return {dispatch}
+}
+```
+
+#5  待续
+
+
+
+
+ 
+
+
+
+
+
