@@ -1,0 +1,115 @@
+body{
+  background-color: #eee;
+}
+.skin{
+  background-color: #fff;
+  -webkit-box-shadow: rgba(0, 0, 0, 0.2) 0 2px 6px 0;
+  -moz-box-shadow: rgba(0, 0, 0, 0.2) 0 2px 6px 0;
+  -ms-box-shadow: rgba(0, 0, 0, 0.2) 0 2px 6px 0;
+  -o-box-shadow: rgba(0, 0, 0, 0.2) 0 2px 6px 0;
+  box-shadow: rgba(0, 0, 0, 0.2) 0 2px 6px 0;
+  -webkit-border-radius: 0 0 5px 5px;
+  -moz-border-radius: 0 0 5px 5px;
+  -ms-border-radius: 0 0 5px 5px;
+  -o-border-radius: 0 0 5px 5px;
+  border-radius: 0 0 5px 5px;
+}
+/*@leve page-wrapper*/
+.page-wrapper{
+  width: 520px;
+  margin: 0 auto;
+  padding-bottom: 20px;
+  line-height: 30px;
+}
+.inner-blank{
+  padding: 10px 20px 0px;
+}
+.todo-title{
+  font-size: 2em;
+  margin: 0.67em;
+  text-align: center;
+}
+.new-todo{
+  box-sizing: border-box;
+  width: 100%;
+  padding: 0 10px;
+  line-height: 46px;
+  font-size: 26px;
+}
+.list-item-li{
+  padding: 18px 20px 18px 0;
+  font-size: 24px;
+}
+.list-item-li+.list-item-li{
+  border-top: 1px solid #ccc;
+}
+.list-item{
+  position: relative;
+}
+.list-item:hover .destroy{
+  display: block;
+}
+.destroy{
+  display: none;
+  position: absolute;
+  right: -20px;
+  top: 5px;
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  background: url('../images/destroy.png') no-repeat;
+}
+.destroy:hover{
+  background-position: 0 -20px;
+}
+.list-item-edit{
+  display: none; 
+  box-sizing: border-box;
+  width: 480px;
+  padding: 0 10px;
+}
+/*@leve page-list*/
+.list-show{
+  padding-top: 0;
+}
+/*@leve page-footer*/
+.page-footer{
+  padding: 0 20px;
+  margin-bottom: -20px;
+  text-align: right;
+  line-height: 38px;
+  background-color: #f4fce8;
+  border-radius: 0 0 5px 5px;
+  overflow: hidden;
+}
+.left-todo{
+  float: left;
+}
+.clear-complete{
+    padding: 0px 10px 1px;
+    color: #555;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.1);
+    box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 0 0;
+    cursor: pointer;
+}
+.clear-complete:hover {
+  background: rgba(0, 0, 0, 0.15);
+  -webkit-box-shadow: rgba(0, 0, 0, 0.3) 0 -1px 0 0;
+  -moz-box-shadow: rgba(0, 0, 0, 0.3) 0 -1px 0 0;
+  -ms-box-shadow: rgba(0, 0, 0, 0.3) 0 -1px 0 0;
+  -o-box-shadow: rgba(0, 0, 0, 0.3) 0 -1px 0 0;
+  box-shadow: rgba(0, 0, 0, 0.3) 0 -1px 0 0;
+}
+.clear-complete:active {
+  position: relative;
+  top: 1px;
+}
+/*footer{
+  padding: 0 20px;
+  margin-bottom: -20px;
+  background-color: #f4fce8;
+}
+footer a{
+  float: right;
+}*/

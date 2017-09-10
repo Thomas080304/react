@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>backbone</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width">
+    <link rel="shortcut icon" href="./favicon.ico">
+    <link rel="stylesheet" type="text/css" href="./styles/common/normalize.css">
+    <link rel="stylesheet" type="text/css" href="./styles/common/reset.css">
+    <link rel="stylesheet" type="text/css" href="./styles/common/lib.css">
+    <link rel="stylesheet" type="text/css" href="./styles/main.css">
+  </head>
+  <body>
+    <div id="todo-test"></div>
+    <div class="page-wrapper skin" id="todo-app">
+      <section class="inner-blank intro">
+          <header>
+            <h1 class="todo-title">Todos</h1>
+            <input id="new-todo" class="new-todo" type="text" name="new-todo" placeholder="what needs to be done?" />
+          </header>
+      </section>
+      <div id="main" class="main" role="main">
+        <div class="inner-blank list-show">
+          <input id="toggle-all" type="checkbox" name="toggle-all" />
+          <label for="toggle-all">Mark all as complete</label>
+          <ul id="todo-list" class="list-todos">
+            <!-- <li class="list-item-li">
+              <div class="list-item">
+                <input type="checkbox" name="list-item-checkbox" />
+                <label>12323</label>
+                <a class="destroy" href="javascript:void(0)" rel="not-follow"></a>
+              </div>
+              <input class="list-item-edit" type="text" name="list-item" />
+            </li>
+            <li class="list-item-li">
+              <div class="list-item">
+                <input type="checkbox" name="list-item-checkbox" />
+                <label>12323</label>
+                <a class="destroy" href="javascript:void(0)" rel="not-follow"></a>
+              </div>
+              <input class="list-item-edit" type="text" name="list-item" />
+            </li> -->
+          </ul>
+        </div>
+        <footer class="page-footer">
+          <h3 class="left-todo">1 item left</h3>
+          <a class="clear-complete" href="javascript:void(0)" rel="not-follow">clear 1 item</a>
+        </footer>
+        <!-- <footer>
+          <a href="#" rel="not-follow">clear 1 item</a>
+          <h3>1 item left</h3>
+        </footer> -->
+      </div>
+      <aside class="slider" role="complementary"></aside>  
+    </div>
+    <script type="text/javascript" data-main="./scripts/main" src="./scripts/utils/require.js"></script> 
+    <script type="text/html" id="todo-view">
+      <div class="list-item view">
+        <input class="toggle" type="checkbox" name="list-item-checkbox" <%= done ? 'checked="checked"' : '' %> />
+        <label><%- title %></label>
+        <a class="destroy" href="javascript:void(0)" rel="not-follow"></a>
+      </div>
+      <input class="list-item-edit edit" type="text" name="list-item" value="<%- title %>" />
+    </script>
+    <script type="text/html" id="stats-template">
+      <h3 class="left-todo todo-count"><b><%= remaining %></b> <%= remaining == 1 ? 'item' : 'items' %> left</h3>
+      <% if(done){ %>
+        <a id="clear-completed" class="clear-complete" href="javascript:void(0)" rel="not-follow">
+          Clear <%= done %> completed <%= done == 1 ? 'item' : 'items' %>
+        </a>
+      <% } %>
+    </script>
+  </body>
+</html>
+
+          

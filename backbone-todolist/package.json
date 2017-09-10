@@ -1,0 +1,18 @@
+{
+  "name": "backbone-todolist",
+  "version": "1.0.0",
+  "description": "backbone todo list",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "http-server"
+  },
+  "keywords": [
+    "backbone"
+  ],
+  "author": "thomas",
+  "license": "MIT",
+  "devDependencies": {
+    "http-server": "^0.8.5"
+  }
+}
