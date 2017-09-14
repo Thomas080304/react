@@ -4,17 +4,25 @@ import Picker from '../components/Picker';
 import List from '../components/List';
 import {
 	selectList,
+	invalidList,
 	fetchPostsIfNeed} from '../actions';
 
 class App extends React.Component{
 	constructor(props){
 		super(props);
 		this.onSelectChange = this.onSelectChange.bind(this);
+		this.onClickHandle = this.onClickHandle.bind(this);
 	}
 	onSelectChange(value){
 		console.log(value);
 		const {dispatch} = this.props;
 		dispatch(selectList(value));
+	}
+	onClickHandle(e){
+		e.preventDefault();
+		const {dispatch,filter} = this.props;
+		dispatch(invalidList(filter));
+		dispatch(fetchPostsIfNeed(filter));
 	}
 	componentDidMount(){
 		const {dispatch,filter} = this.props;
@@ -48,7 +56,24 @@ class App extends React.Component{
 							options={['reactjs','frontend']} />
 					</div>
 					<div className="refresh-wrap">
-
+						<p>
+							{
+								lastUpdated&&
+								<span>
+									Last Update At : 
+									{new Date(lastUpdated).toLocaleTimeString()}
+									{'  '}
+								</span>
+							}
+							{
+								!isFetching&&
+								<a 
+									href="javascript:void(0)" 
+									onClick={this.onClickHandle}>
+									Refresh
+								</a>
+							}
+						</p>
 					</div>
 					<div className="content-wrap">
 						{
