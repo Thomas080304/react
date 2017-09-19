@@ -5,7 +5,7 @@ import List from '../components/List';
 import {loadUser,loadStarred} from '../actions/actions';
 const loadData = function({login,loadUser,loadStarred}){
 	loadUser(login,['name']);
-	//loadStarred(login)
+	loadStarred(login)
 };
 class UserPage extends React.Component{
 	componentWillMount(){
@@ -34,9 +34,21 @@ class UserPage extends React.Component{
 }
 const mapStateToPropTypes = (state,ownProps)=>{
 	const login = ownProps.params.login.toLowerCase();
-	const {users} = state.entities;
+	const {pagination,entities} = state;
+	const {users,repos} = entities;
+	const {starredByUser} = pagination;
+	const starredDatas = starredByUser[login]||{ids:[]};
+	const starredRepos = starredDatas.ids.map(function(id){
+		return repos[id];
+	});
+	const starredOwners = starredRepos.map(function(repo){
+		return users[repo.owner]
+	});
 	return {
 		login,
+		starredDatas,
+		starredOwners,
+		starredRepos,
 		user:users[login]
 	};
 };
