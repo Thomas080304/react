@@ -29,8 +29,8 @@ module.exports = {
 	plugins:[
 		new HotModuleReplacementPlugin(),
 		new HtmlWebpackPlugin({
-			title:'Redux-Counter',
-			template:path.resolve(__dirname,'./index.html'),
+			title:'Redux-real',
+			template:path.resolve(__dirname,'./public/index.html'),
 			inject:'body'
 		})
 	]

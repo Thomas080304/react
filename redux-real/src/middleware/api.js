@@ -5,6 +5,18 @@ import { camelizeKeys } from 'humps';
 const API_ROOT = 'https://api.github.com/';
 export const CALL_API = 'CALL_API';
 
+const getNextPageUrl = function(resp){
+	const link = resp.headers.get('link');
+	if (!link) {
+		return null
+	}
+	const nextLink = link.split(',').find(s => s.indexOf('rel="next"') > -1)
+	if (!nextLink) {
+		return null
+	}
+	return nextLink.split(';')[0].slice(1, -1)
+};
+
 const sendData = function(endpoint,schema){
 	const fullUrl = (
 		endpoint.indexOf(API_ROOT) === -1
@@ -19,7 +31,8 @@ const sendData = function(endpoint,schema){
 			}
 			const camelizedJSON = camelizeKeys(data);
 			const result = normalize(camelizedJSON,schema);
-			return Object.assign({},result);
+			const nextPageUrl = getNextPageUrl(resp);
+			return Object.assign({},result,{nextPageUrl});
 		});
 	});
 };
@@ -60,12 +73,12 @@ function api({getState,dispatch}){
 				return finalAction;
 			};
 			
-			const [requestType,succesType,failureType] = types;			
+			const [requestType,successType,failureType] = types;			
 			next(actionWith({type:requestType}));
 			return sendData(endpoint,schema).then(
 				function(resp){
 					return next(actionWith({
-						type:succesType,
+						type:successType,
 						resp
 					}));
 				},

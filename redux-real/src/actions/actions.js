@@ -25,6 +25,35 @@ import {CALL_API} from '../middleware/api';
   		}
   }
 
+  export const STARRED_REQUEST = 'STARRED_REQUEST';
+  export const STARRED_SUCCESS = 'STARRED_SUCCESS';
+  export const STARRED_FAILURE = 'STARRED_FAILURE';
+  const fetchStarred = function(login,nextPageUrl){
+    return {
+      login,
+      [CALL_API]:{
+        types:[STARRED_REQUEST,STARRED_SUCCESS,STARRED_FAILURE],
+        endpoint:nextPageUrl,
+        schema:Schema.REPO_ARRAY
+      }
+    };
+  };
+  export const loadStarred = function(login){
+    
+    return function(dispatch,getState){
+      const state = getState();
+      const {
+        nextPageUrl = `users/${login}/starred`,
+        pageCount = 0
+      } = state.pagination.starredByUser[login]||{};
+      if(pageCount > 0 && !nextPage){
+        return null
+      }
+      return dispatch(fetchStarred(login,nextPageUrl));
+    };
+  };
+
+
   export const REPO_REQUEST = 'REPO_REQUEST';
   export const REPO_SUCCESS = 'REPO_SUCCESS';
   export const REPO_FAILURE = 'REPO_FAILURE';
@@ -39,8 +68,10 @@ import {CALL_API} from '../middleware/api';
     };
   };
 
-  export const loadRepo = function(){
-    return dispatch(fetchRepo(fullName));
+  export const loadRepo = function(login){
+    return function(dispatch,getState){
+      return dispatch(fetchRepo(login));
+    } 
   };
 
   export const RESET_ERROR_MESSAGE = 'RESET_ERROR_MESSAGE';

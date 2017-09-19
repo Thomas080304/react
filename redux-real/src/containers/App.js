@@ -1,20 +1,24 @@
 import React from 'react';
 import {connect} from 'react-redux';
+import {browserHistory} from 'react-router';
 import {loadUser} from '../actions/actions';
 import Search from '../components/Search';
 class App extends React.Component{
 	constructor(props){
 		super(props);
-		this.onClickHandle = this.onClickHandle.bind(this);
+		this.onSearchHandle = this.onSearchHandle.bind(this);
 		this.onDismHandle = this.onDismHandle.bind(this);
+		this.onClickHandle = this.onClickHandle.bind(this);
 	}
-	onClickHandle(e){
-		e.preventDefault();
+	onSearchHandle(value){
+		browserHistory.push(`/${value}`);
+	}
+	onClickHandle(){
 		const {dispatch} = this.props;
-		dispatch(loadUser('Thomas080304',['name']));
+		dispatch(loadUser('Thomas080304'));
 	}
 	onDismHandle(){
-
+		
 	}
 	renderErrorMsg(){
 		const {errorMessag} = this.props;
@@ -34,13 +38,15 @@ class App extends React.Component{
 		);
 	}
 	render(){
-		const {children} = this.props;
+		const {children,inputVal} = this.props;
 		return (
 			<div>
 				<button onClick={this.onClickHandle}>
 					按钮
 				</button>
-				<Search />
+				<Search
+					value={inputVal}
+					onSearch={this.onSearchHandle} />
 				{this.renderErrorMsg()}
 				{children}
 			</div>
@@ -49,6 +55,8 @@ class App extends React.Component{
 
 }
 const mapStateToProps = function(state,ownProps){
-	return {};
+	return {
+		inputVal:ownProps.location.pathname.substring(1)
+	};
 };
 export default connect(mapStateToProps)(App);
