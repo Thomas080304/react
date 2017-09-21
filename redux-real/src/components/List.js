@@ -1,11 +1,13 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-const List = function(props){
+const List = function({renderItem,items}){
 
 	return (
-		<div>
-			List
+		<div className='list'>
+			{
+				items.map(renderItem)
+			}
 		</div>
 	);
 };

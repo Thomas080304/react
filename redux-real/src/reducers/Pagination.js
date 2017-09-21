@@ -1,3 +1,5 @@
+import union from 'lodash/union'
+
 
 const Pagination = function({types,mapActionToKey}){
 
@@ -23,7 +25,7 @@ const Pagination = function({types,mapActionToKey}){
 					{},{...state},
 					{
 						isFetching:false,
-						ids:action.resp.result,
+						ids:union(state.ids,action.resp.result),
 						nextPageUrl:action.resp.nextPageUrl,
 						pageCount:state.pageCount + 1
 					}

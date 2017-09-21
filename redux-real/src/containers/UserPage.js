@@ -1,13 +1,19 @@
 import React from 'react';
 import {connect} from 'react-redux';
+import zip from 'lodash/zip'
 import User from '../components/User';
 import List from '../components/List';
+import Repo from '../components/Repo';
 import {loadUser,loadStarred} from '../actions/actions';
 const loadData = function({login,loadUser,loadStarred}){
 	loadUser(login,['name']);
 	loadStarred(login)
 };
 class UserPage extends React.Component{
+	constructor(props){
+		super(props);
+		this.renderRepo = this.renderRepo.bind(this);
+	}
 	componentWillMount(){
 		loadData(this.props);
 	}
@@ -18,8 +24,21 @@ class UserPage extends React.Component{
 			loadData(nextProps);
 		}
 	}
+	renderRepo([repo,owner]){
+		return (
+			<Repo 
+				repo={repo}
+				owner={owner}
+				key={repo.fullName} />
+		);
+	}
 	render(){
-		const {login,user} = this.props;
+		const {
+			login,
+			user,
+			starredDatas,
+			starredRepos,
+			starredOwners} = this.props;
 		if(!user){
 			return <h1><i>Loading {login}{"'s profile..."}</i></h1>
 		}
@@ -27,7 +46,9 @@ class UserPage extends React.Component{
 			<div>
 				<User user={user} />
 				<hr />
-				<List />
+				<List 
+					renderItem={this.renderRepo}
+					items={zip(starredRepos,starredOwners)}/>
 			</div>
 		);
 	}

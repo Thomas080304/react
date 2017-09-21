@@ -2,6 +2,7 @@ import {combineReducers} from 'redux';
 import {RESET_ERROR_MESSAGE} from '../actions/actions';
 import {routerReducer} from 'react-router-redux';
 import Pagination from './Pagination';
+import merge from 'lodash/merge'
 import {
 	STARRED_REQUEST,
 	STARRED_SUCCESS,
@@ -13,7 +14,7 @@ const entities = function(
 	action){
 	const {resp} = action;
 	if(resp&&resp.entities){
-		return Object.assign({},state,resp.entities);
+		return merge({},state,resp.entities);
 	}
 	return state;
 };
@@ -44,12 +45,23 @@ export default RootReducer;
 	{
 		entities:{
 			users:{
-				thomas080304:{login,id},
-				laketea:{login,id}
+				laketea:{
+					"login": "laketea",
+					"id": 3827390,
+					"avatar_url": "https://avatars0.githubusercontent.com/u/3827390?v=4"
+				}
 			},
 			repos:{
-				laketea/front-road:{id,name,owner},
-				js-cookie/js-cookie:{id,name,owner}
+				laketea/front-road:{
+					"id": 16634951,
+					"name": "front-road",
+					"full_name": "laketea/front-road",
+					"owner": 'laketea',
+					"html_url": "https://github.com/laketea/front-road",
+					"description": "最近准备整理复习一下前端这块的知识，所以开个板块准备记录一些笔记··",
+					"watchers": 3,
+					"default_branch": "master"
+				}
 			}
 		},
 		pagination:{
@@ -57,7 +69,10 @@ export default RootReducer;
 				thomas080304:{
 					isFetching:false,
 					nextPageUrl:'',
-					ids:[]
+					ids:[
+						'laketea/front-road',
+						'laketea/front-demo'
+					]
 				}
 			}
 			starredByRepo:{}

@@ -26,21 +26,26 @@ export default {
 };
 
 /*
-import { normalize, schema } from 'normalizr';
-const myData = { users: [ { id: 1 }, { id: 2 } ] };
-const user = new schema.Entity('users');//设置entities的key值
-const mySchema = { users: [ user ] }//设置result的key
-const normalizedData = normalize(myData, mySchema);
 
 {
-  result: { users: [ 1, 2 ] },
-  entities: {
-    users: {
-      '1': { id: 1 },
-      '2': { id: 2 }
-    }
-  }
-}
-
-	
+	users:{
+		laketea:{
+			"login": "laketea",
+			"id": 3827390,
+			"avatar_url": "https://avatars0.githubusercontent.com/u/3827390?v=4"
+		}
+	},
+	repos:{
+		laketea/front-road:{
+			"id": 16634951,
+			"name": "front-road",
+			"full_name": "laketea/front-road",
+			"owner": 'laketea',
+			"html_url": "https://github.com/laketea/front-road",
+			"description": "最近准备整理复习一下前端这块的知识，所以开个板块准备记录一些笔记··",
+			"watchers": 3,
+			"default_branch": "master"
+		}
+	}
+}	
 */
