@@ -1,0 +1,1 @@
+export createBrowserHistory from './createBrowserHistory'

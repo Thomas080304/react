@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>tabs 1样式</title>
+  <link rel="stylesheet" type="text/css" href="../../common/reset.css">
+  <link rel="stylesheet" type="text/css" href="../../common/variable.css">
+  <!-- <link rel="stylesheet" type="text/css" href="../common/ui/Tab.css"> -->
+  <style type="text/css">
+  	.tabs-wrapper{
+		width: 500px;
+		height: 300px;
+		margin: 0 auto;
+		border: 1px solid #ccc;
+  	}
+  	.ui_tab_tabs{
+  		height: 40px;
+		line-height: 40px;
+		border-bottom: 1px solid #DFDFE0;
+		position: relative;
+  	}
+  	.ui_tab_tab{
+		float: left;
+		margin-right: 50px;
+		font-size: 16px;
+		text-align: center;
+		color: #555A6C;
+		cursor: pointer;
+  	}
+  	.ui_tab_tab a{
+		display: block;
+		color: #555A6C;
+  	}
+  	.ui_tab_tab:hover,
+  	.ui_tab_tab:hover a{
+  		color: #00a5e0;
+  	}
+  	.ui_tab_tabs .checked,
+  	.ui_tab_tabs .checked a,
+  	.ui_tab_tabs .checked:hover{
+		border-bottom: 3px solid;
+		color: #00a5e0;
+		cursor: default;
+		padding-top: 2px;
+		margin-bottom: -1px;
+		line-height: 36px;
+  	}
+
+  	.ui_tab_contents{
+  		
+  	}
+  	.ui_tab_content{
+  		display: none;
+  	}
+  </style>
+</head>
+
+<body>
+	<div class="tabs-wrapper">
+		<div class="ui_tab_tabs">
+			<div class="ui_tab_line"></div>
+			<div class="ui_tab_tab">
+					<a>标签一</a>
+				</div>
+			<div class="ui_tab_tab checked">
+				<a>标签二</a>
+			</div>
+			<div class="ui_tab_tab">
+				<a>标签三</a>
+			</div>
+			<div class="ui_tab_tab">
+				<a>标签四</a>
+			</div>
+		</div>
+		<div class="ui_tab_contents">
+			<div class="ui_tab_content">
+				内容一
+			</div>
+			<div class="ui_tab_content checked">
+				内容二
+			</div>
+			<div class="ui_tab_content">
+				内容三
+			</div>
+			<div class="ui_tab_content">
+				内容四
+			</div>
+		</div>
+	</div>
+</body>
+
+</html>

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Bootstrap Tabs</title>
+  <link 
+  	rel="stylesheet" 
+  	type="text/css" 
+  	href="../../common/reset.css">
+  <link 
+  	rel="stylesheet" 
+  	type="text/css" 
+  	href="../../common/variable.css">
+  <link 
+  	rel="stylesheet" 
+  	type="text/css" 
+  	href="../../common/lib.css">
+  <style type="text/css">
+  	.wrapper{
+		width: 500px;
+		height: 300px;
+		margin: 0 auto;
+		border: 1px solid #ccc;
+  	}
+  	.tabs{
+
+  	}
+  	.nav-tabs{
+  		border-bottom: 1px solid #ccc;
+  	}
+  	.nav-item{
+		float: left;
+		margin-bottom: -1px;
+  	}
+  	.nav-item-text{
+  		display: block;
+  		padding: 10px 15px;
+		margin-right: 2px;
+		line-height: 1.42857143;
+		border: 1px solid transparent;
+		border-radius: 4px 4px 0 0;
+		cursor: pointer;
+  	}
+  	.nav-item-text:hover{
+  		text-decoration: none;
+  		background-color: #eee;
+  		border-color: #eee #eee #ddd;	
+  	}
+  	.active .nav-item-text,
+  	.active .nav-item-text:focus,
+  	.active .nav-item-text:hover{
+  		color: #555;
+  		cursor: default;
+  		background-color: #fff;
+  		border: 1px solid #ccc;
+  		border-bottom-color: transparent;
+  	}
+
+  </style>
+</head>
+
+<body>
+	<div class="wrapper">
+		<h4>Tabs without fade</h4>
+		<div class="tabs">
+			<ul class="nav-tabs clearfix">
+				<li class="nav-item active">
+					<a href="#home" class="nav-item-text">Home</a>
+				</li>
+				<li class="nav-item">
+					<a href="#profile" class="nav-item-text">Profile</a>
+				</li>
+				<li class="nav-item">
+					<a href="#" class="nav-item-text">Dropdown</a>
+				</li>
+			</ul>
+		</div>
+  	</div>
+</body>
+
+</html>
