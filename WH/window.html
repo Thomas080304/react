@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>window</title>
+  <style type="text/css">
+
+  </style>
+</head>
+
+<body>
+  <div class="div"></div>
+  <div id="container" class="cont">
+      <div class="child"></div>
+      <div class="child"></div>
+      <div class="child"></div>
+      <div class="child"></div>
+      <div class="child"></div>
+      <div class="child"></div>
+      <div class="child"></div>
+      <div class="child"></div>
+      <div class="child"></div>
+      <div class="child"></div>
+  </div>
+  <!-- <script type="text/javascript" src="../ef/ef.js"></script> -->
+  <script type="text/javascript" src="./NodeList.js"></script>
+  <script type="text/javascript">
+    var tt = $$('#container div');
+    tt = $$('#container').children;
+    var container = document.getElementById('container');
+    tt = $$('div',container);
+    tt = $$(document, document.body);
+    tt = $$([document, document.body]);
+    console.log(tt);
+    /**
+        window.innerHeight
+        window.innerWidth
+        window.outerHeight
+        window.outerWidth
+     **/
+    var leftPos = (typeof window.screenLeft === 'number')
+                  ? window.screenLeft
+                  : window.screenX;
+    var topPos = (typeof window.screenTop === 'number')
+                  ? window.screenTop
+                  : window.screenY;
+    console.log('窗口的偏移量:',leftPos,topPos);
+    console.log($$().version);
+  </script>
+</body>
+
+</html>

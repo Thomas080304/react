@@ -34,16 +34,21 @@ var topPos = (typeof window.screenTop === 'number')
 ##2.确定浏览器视口的大小
 
 ```javascript
-var pageWidth = window.innerWidth,
-    pageHeight = window.innerHeight;
-if(typeof pageWidth !== 'number'){
-    if(document.compatMode === 'CSS1Compat'){
+function getViewSize(){
+    /**DOM扩展属性**/
+    var pageWidth = window.innerWidth,
+        pageHeight = window.innerHeight;
+    if(typeof pageWidth !== 'number'){
+        /**标准模式**/
         pageWidth = document.documentElement.clientWidth;
         pageHeight = document.documentElement.clientHeight;
-    }else{
-        pageWidth = document.body.clientWidth;
-        pageHeight = document.body.clientHeight;
+        if(typeof pageWidth !== 'number'){
+            /**兼容模式**/
+            pageWidth = document.body.clientWidth;
+            pageHeight = document.body.clientHeight;
+        }
     }
+    return {width:pageWidth,height:pageHeight};
 }
 ```
 
