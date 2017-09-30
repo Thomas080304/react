@@ -198,6 +198,13 @@
 			'INTERACTIVE':3,
 			'COMPLETE':4
 		},
+		LOADSTATE:{
+			'START':'loadstart',
+			'PROGRESS':'progress',
+			'ERROR':'error',
+			'ABORT':'abort',
+			'LOADEND':'loadend'
+		},
 		sendRequest:function(url,options){
 			var xhr = XHRUtil.xhrLazyLoad(),
 				url=url;
@@ -207,79 +214,7 @@
 			xhr.onload = function(event){};
 			xhr.onprogress = function(event){};
 			xhr.onloadend = function(event){};
-			xhr.onreadystatechange = function(){
-				var state = XHRUtil.STATE;
-				switch(xhr.readyState){
-					case state.LOADING:
-						options.loadListener
-						&&options.loadListener.apply(xhr,arguments);
-						break;
-					case state.LOADED:
-						options.loadedListener
-						&&options.loadedListener.apply(xhr,arguments);
-						break;
-					case state.INTERACTIVE:
-						options.interactiveListener
-						&&options.interactiveListener.apply(xhr,arguments);
-						break;
-					case state.COMPLETE:
-						//在浏览器终止请求访问status报错
-						//例如timeout的时候
-						try{
-							if( (xhr.status >= 200 && xhr.status < 300) 
-							    || xhr.status == 304){
-								// Specific listeners for content-type
-			                    // The Content-Type header can include the charset:
-			                    // Content-Type: text/html; charset=ISO-8859-4
-			                    // So we'll use a match to extract the part we need.
-								//xhr.getAllResponseHeaders()
-								var contentType = xhr.getResponseHeader('Content-Type');
-								var miniType = contentType.match(/\s*([^;]+)\s*(;|$)/i)[1];
-								//无论相应的内容的类型是什么，相应主体的内容都会保存在
-								//responseText中，对于非xml类型responseXML为null
-								switch(miniType){
-									case 'text/javascript':
-									case 'application/javascript':
-										options.jsResponseListener
-										&&options.jsResponseListener.call(xhr,xhr.responseText);
-										break;
-									case 'application/json':
-										var json = null;
-										try{
-											json = parseJSON(xhr.responseText);
-										}catch(e){
-											json = false;
-										}
-										options.jsonResponseListener
-										&&options.jsonResponseListener.call(xhr,json);
-										break;
-									case 'text/xml':
-									case 'application/xml':
-									case 'application/xhtml+xml':
-										options.xmlResponseListener
-										&&options.xmlResponseListener.call(xhr,xhr.responseXML);
-										break;
-									case 'text/html':
-										options.htmlResponseListener
-										&&options.htmlResponseListener.call(xhr,xhr.responseText);
-										break;
-									default:
-										break;
-								}
-								options.completeListener
-								&&options.completeListener.apply(xhr,arguments);
-							}else{
-								options.errorListener
-								&&options.errorListener.apply(xhr,arguments);
-							}
-						}catch(e){
-							//ignor error
-						}
-						break;
-					default:
-						break;
-				}
-			};
+			XHRUtil.handleReadyState(xhr,options);
 			if( options.method.toUpperCase() === 'GET'
 				&&options.data){
 				for(var name in options.data){
@@ -290,6 +225,87 @@
 			xhr.open(options.method, url, true);
 			xhr.setRequestHeader('X-ADS-Ajax-Request','AjaxRequest');
 			xhr.send(options.data);
+			return xhr;
+		},
+		handleReadyState(xhr,options){
+			xhr.onreadystatechange = function(){
+				var state = XHRUtil.STATE;
+				var loadstate = XHRUtil.LOADSTATE;
+				switch(xhr.readyState){
+					case state.LOADING:
+						options.loadListener
+						&&options.loadListener.apply(xhr,loadstate.START);
+						break;
+					case state.LOADED:
+						options.loadListener
+						&&options.loadListener.apply(xhr,loadstate.START);
+						break;
+					case state.INTERACTIVE:
+						options.loadListener
+						&&options.loadListener.apply(xhr,loadstate.PROGRESS);
+						break;
+					case state.COMPLETE:
+						//在浏览器终止请求访问status报错
+						//例如timeout的时候
+						try{
+							if( (xhr.status >= 200 && xhr.status < 300) 
+							    || xhr.status == 304){
+								XHRUtil.handlerResponse(
+									xhr,XHRUtil.
+									getMiniType(xhr),
+									options.success
+								);
+							}else{
+								options.error
+								&&options.error.apply(xhr,arguments);
+							}
+						}catch(e){
+							//ignor error
+							
+						}
+						break;
+					default:
+						break;
+				}
+			}
+		},
+		getMiniType(xhr){
+			// Specific listeners for content-type
+            // The Content-Type header can include the charset:
+            // Content-Type: text/html; charset=ISO-8859-4
+            // So we'll use a match to extract the part we need.
+			//xhr.getAllResponseHeaders()
+			var reg = /\s*([^;]+)\s*(;|$)/i;
+			var contentType = xhr.getResponseHeader('Content-Type');
+			var miniType = contentType.match(reg)[1];
+			if(miniType){
+				return miniType;
+			}
+		},
+		handlerResponse(xhr,miniType,success){
+			//无论相应的内容的类型是什么，相应主体的内容都会保存在
+			//responseText中，对于非xml类型responseXML为null
+			var data;
+			switch(miniType){
+				case 'text/javascript':
+				case 'application/javascript':
+				case 'text/html':
+					data = xhr.responseText;
+					break;
+				case 'application/json':
+					try{
+						data = parseJSON(xhr.responseText);
+					}catch(e){
+						data = false;
+					}
+					break;
+				case 'text/xml':
+				case 'application/xml':
+				case 'application/xhtml+xml':
+					data = xhr.responseXML;
+					break;
+			}
+			success.call(xhr,data);
 		},
 		addURLParam:function(url,name,value){
 			url += (url.indexof('?') === -1 ? "?":"&");
@@ -356,6 +372,139 @@
 	Ef.extend(Ef,{
 		ajaxRequest:function(url,options){
 			return XHRUtil.sendRequest(url,options);
+		}
+	});
+	/**
+	 *	跨域请求模块
+	 **/
+	var XssHttpRequestCount = 0;
+	var XssHttpRequest = function(){
+		this.requestId = 'XSS_HTTP_REQUEST_'+(++XssHttpRequestCount);
+	};
+	XssHttpRequest.prototype = {
+		url:null,
+		scriptObject:null,
+		status:0,
+		readyState:0,
+		timeout:30000,
+		responseJSON:null,
+		constructor:XssHttpRequest,
+		onreadystatechange:function(){},
+		setReadyState:function(nextState){
+			// Only update the ready state if it's newer than the current state
+	        if(this.readyState < nextState || nextState==0) {
+	            this.readyState = nextState;
+	            this.onreadystatechange();
+	        }
+		},
+		open:function(url,timeout){
+			this.timeout = timeout || 30000;
+			// Append a special variable to the URL called XSS_HTTP_REQUEST_CALLBACK
+        	// that contains the name of the callback function for this request
+			this.url = url
+				+ ((url.indexOf('?') != -1) ? '&': '?')
+				+ 'XSS_HTTP_REQUEST_CALLBACK='
+				+ this.requestId
+				+ '_CALLBACK';
+			this.setReadyState(0);
+		},
+		createScript:function(){
+			this.scriptObject = document.createElement('script');
+			this.scriptObject.setAttribute('id',this.requestId);
+			this.scriptObject.setAttribute('type','text/javascript');
+			return this.scriptObject;
+		},
+		insertScript:function(script,url){
+			// Now set the src property and append to the document's 
+	        // head. This will load the script
+	        script.setAttribute('src',url);             
+	        var head = document.getElementsByTagName('head')[0];
+	        head.appendChild(script);
+		},
+		removeScript:function(script,id){
+			// Re-populate the window method with an empty method incase the 
+			// script loads later on after we've assumed it stalled
+			window[id + '_CALLBACK'] = function(){};
+			// Remove the script to prevent it from loading further
+			script.parentNode.removeChild(script);
+		},
+		send:function(){
+			var that = this;
+			var script = this.createScript();
+			// Create a setTimeout() method that will trigger after a given 
+	        // number of milliseconds. If the script hasn't loaded by the given
+	        // time it will be cancelled
+	        var timeoutWatcher = setTimeout(function(){
+	        	that.removeScript(script,this.requestId);
+	        	// Set the status to error
+            	that.status = 2;
+            	that.statusText = 'Timeout after'+ that.timeout+'milliseconds';
+            	// Update the state
+	            that.setReadyState(2);
+	            that.setReadyState(3);
+	            that.setReadyState(4);
+	        },this.timeout);
+	        // Create a method in the window object that matches the callback
+	        // in the request. When called it will processing the rest of 
+	        // the request
+	        window[this.requestId + '_CALLBACK'] = function(data){
+	        	// When the script loads this method will execute, passing in
+	            // the desired JSON object.
+	            // Clear the timeoutWatcher method as the request 
+	            // loaded successfully
+	            clearTimeout(timeoutWatcher);
+	            // Update the state
+	            that.setReadyState(2);
+	            that.setReadyState(3);
+	            // Set the status to success 
+	            that.responseJSON = data;
+	            that.status=1;
+	            that.statusText = 'Loaded.';
+	            // Update the state
+	            that.setReadyState(4);
+	        };
+	        this.setReadyState(1);
+	        this.insertScript(script,this.url);
+		}
+	};
+	var getXssRequestObject = function(url,options){
+		var xdo = new XssHttpRequest();
+		options = options || {};
+		options.timeout = options.timeout || 30000;
+		xdo.onreadystatechange = function(){
+			switch (xdo.readyState) {
+	            case 1:// Loading
+	                options.loadListener
+	                &&options.loadListener.apply(xdo,arguments);
+	                break;
+	            case 2:// Loaded
+	                options.loadedListener
+	                &&options.loadedListener.apply(xdo,arguments);
+	                break;
+	            case 3:// Interactive
+	                options.ineractiveListener
+	                &&options.ineractiveListener.apply(xdo,arguments);
+	                break;
+	            case 4:// Complete
+	                if (xdo.status == 1) {
+	                    // The request was successful
+	                    options.success
+	                    &&options.success.apply(xdo,xdo.responseJSON);
+	                } else {
+	                    // There was an error
+	                    options.error
+	                    &&options.error.apply(xdo,arguments);
+	                }
+	                break;
+	        }
+		};
+		xdo.open(url,options.timeout);
+		xdo.send(null);
+		return xdo;
+	};
+	Ef.extend(Ef,{
+		xssRequest:function(url,options){
+			return getXssRequestObject(url,options);
 		}
 	});
 	

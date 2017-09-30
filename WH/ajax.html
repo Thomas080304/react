@@ -12,14 +12,27 @@
 
 <body>
   <div id="wrap"></div>
+  <!-- <script type="text/javascript" src="../ef/ADS-final-verbose.js"></script> -->
   <script type="text/javascript" src="../ef/ef.js"></script>
+  <!-- <script type="text/javascript" src="../ef/jquery-1.7.2.js"></script> -->
   <script type="text/javascript">
-    $$.ajaxRequest(
+    /*$$.ajaxRequest(
       'http://localhost:8080/WH/window.html',
       {
-        htmlResponseListener:function(text){
+        success:function(text){
           var wrapElem = document.getElementById('wrap');
           wrapElem.innerText = text;
+        }
+      }
+    );*/
+    $$.xssRequest(
+      'http://localhost:3000/',
+      {
+        success:function(data){
+          console.log(data);
+        },
+        error:function(){
+          console.log('error-----');
         }
       }
     );
