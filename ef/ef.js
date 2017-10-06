@@ -91,6 +91,24 @@
 		return target;
 	};
 	/**
+	 * core utils
+	 **/
+	Ef.extend(Ef,{
+		inArray:function(elem,arr,i){
+			var len;
+			if(arr){
+				len = arr.length;
+				i = i ? (i<0?Match.max(0,len+i):i) : 0;
+				for(; i < len; i++){
+					if(i in arr&&arr[i] === elem){
+						return i;
+					}
+				}
+				return -1;
+			}
+		}
+	});
+	/**
 	 *	事件模块
 	 **/
 	Ef.extend(Ef,{
@@ -507,6 +525,304 @@
 			return getXssRequestObject(url,options);
 		}
 	});
+	/**
+	 *	DOMUtil
+	 **/
+	Ef.extend(Ef,{
+		$:function(){
+			var elements = new Array();
+			for(var i = 0;i < arguments.length; i++){
+				var element = arguments[i];
+				if(typeof element === 'string'){
+					element = document.getElementById(element);
+				}
+				if(arguments.length === 1){
+					return element;
+				}
+				element.push(element);
+			}
+			return elements;
+		},
+		getElementsByClassName:function(className,tag,parent){
+			parent = parent || document;
+			parent = Ef.$(parent);
+			if(!parent){
+				return false;
+			}
+			var allTags = (tag === '*'&&parent.all)
+						  ? parent.all
+						  :parent.getElementsByTagName(tag);
+			var matchingElements = new Array();
+			className = className.replace(/\-/g,"\\-");
+			var regex = new RegExp('(^|\\s)'+className+'(\\s|$)');
+			var element;
+			for(var i = 0; i < allTags.length; i++){
+				element = allTags[i];
+				if(regex.test(element.className)){
+					matchingElements.push(element);
+				}
+			}
+			return matchingElements;
+		},
+		getClassNames:function(element){
+			element = Ef.$(element);
+			if(!element){
+				return false;
+			}
+			var classNames = element.className.replace(/\s+/,' ');
+			return classNames.split(' ');
+		},
+		hasClassName(element,className){
+			element = Ef.$(element);
+			if(!element){
+				return false;
+			}
+			var classes = getClassNames(element);
+			for (var i = 0; i < classes.length; i++) {
+		        // Check if the className matches and return true if it does
+		        if (classes[i] === className) { return true; }
+		    }
+		    return false;
+		},
+		addClassName:function(element,className){
+			element = Ef.$(element);
+			if(!element){
+				return false;
+			}
+			element.className += (element.className? ' ':'')+className;
+			return true;
+		}
+	});
+	/**
+	 *	监听hash变化
+	 **/
+	var actionPage = {
+		ajaxifClass:'',
+		ajaxifyRoot:'',
+		safariHistory:false,
+		msieHistory:false,
+		init:function(ajaxifClass,ajaxifyRoot,startingHash){
+			this.ajaxifClass = ajaxifClass || 'ADSActionLink';
+			this.ajaxifyRoot = ajaxifyRoot || '';
+			//check browers history
+			//search a & format(add expected class)
+			//add event listener
+			//set page init state
+		},
+		ajaxifyLinks:function(){
+			var links = Ef.getElementsByClassName(
+					this.ajaxifyClassName,
+					'a',document
+				);
+			for(var i = 0,len = links.length; i < len; i++){
+				if(Ef.hasClassName(
+					links[i],
+					'ADSActionPagerModified')){
+					continue;
+				}
+				links[i].setAttribute(
+					'href',
+					this.convertURLToHash(links[i].getAttribute('href'))
+				);
+				Ef.addClassName(links[i],'ADSActionPagerModified');
+				Ef.addHandler(links[i],'click',function(){
+					if(this.href&&this.href.indexOf('#') > -1){
+						Ef.addBackButtonHash(
+							Ef.getHashFromURL(this.href)
+						);
+					}
+				});
+			}
+			
+		},
+		getHashFromURL:function(url){
+			if(!url||url.indexOf('#') === -1){
+				return '';
+			}
+			return url.split('#')[1];
+		},
+		addBackButtonHash:function(ajaxHash){
+			//根据浏览器处理back btn
+		},
+		convertURLToHash:function(url){
+			if(!url){
+				return '#';
+			}else if(url.indexOf('#') != -1){
+				return '#'+url.split('#')[1];
+			}else{
+				// If the URL includes the domain name (MSIE) strip it off.
+	            if(url.indexOf("://") != -1) {
+	                url = url.match(/:\/\/[^\/]+(.*)/)[1];
+	            }
+		        // Strip off the root as specified in init()
+		        return '#' + url.substr(this.ajaxifyRoot.length);
+			}
+		}
+
+	};
 	
+	/**
+	 *	callbacks
+	 **/
+	var optionsCache = {};
+	function createOptions(options){
+		//'unique stopOnFalse'
+		var object = optionsCache[options] = {},
+			optonsArray,flag;
+		optiosArray = options.match(/\S+/g)||[];
+		for(var i = 0,len=optiosArray.length; i < len; i++){
+			flag = optiosArray[i];
+			object[flag] = true;
+		}
+		return object;	
+	}
+	var Callbacks = function(options){
+		options = typeof options === 'string'
+				 ? (optionsCache[options]||createOptions(options))
+				 : Ef.extnd({},options);
+		var list = [],
+			firing,
+			memory,
+			firingLength,
+			firingIndex,
+			firingStart,
+			stack = !options.once&&[];
+		var fire = function(data){
+			//缓存当前的数据
+			memory = options.memory&&data;
+			//firingStart保存memory起点信息
+			firingIndex = firingStart || 0;
+			//清理起点信息
+			firingStart = 0;
+			firingLength = list.length;
+			firing = true;
+			for(; list&&firingIndex < firingLength; firingIndex++){
+				if(list[firingIndex].apply(data[0],data[1]) === false&&options.stopOnFalse){
+					break;
+				}
+			}
+			firing = false;
+			//end
+		};
+		var self = {
+			add:function(){
+				//add(fn1,fn2) add([fn1,fn2]);
+				var start = list.length;
+				(function add(args){
+					for(var i = 0,len = args.length; i< len; i++){
+						var arg = args[i],
+							type = (typeof arg);
+						if(type === 'function'){
+							//unique == false || unique == undefined 表示不需要去重
+							//unique == true && !self.has(arg)
+							if(!options.unique || !self.has(arg)){
+								list.push(arg);
+							}
+						}else if(arg&&arg.length&& type !== 'string'){
+							add(arg);
+						}
+					}
+				})(arguments);
+				//end
+				if(memory){
+					/*
+						var callback = $$.Callbacks('memory');
+						callback.add([fn1,fn2,fn3]);
+						callback.remove(fn2);
+						callback.fire();
+					*/
+					//memory是缓存下来的参数
+					firingStart = start;
+					fire(memory);
+				}
+			},
+			remove:function(){
+				for(var i = 0,len = arguments.length; i < len; i++){
+					var index;
+					while((index = Ef.inArray(arguments[i],list,index)) > -1){
+						list.splice(index,1);
+					}
+				}
+				return this;
+			},
+			fire:function(){
+				self.fireWith(this,arguments);
+			},
+			fireWith:function(context,args){
+				args = args || [];
+				args = [context,args];
+				fire(args);
+			},
+			has:function(fn){
+				return fn ? Ef.inArray(fn,list) > -1 : !!(list&&list.length);
+				
+			}
+		};
+		return self;
+	};
+	Ef.extend(Ef,{Callbacks:Callbacks});
+	/**
+	 *	Deferred模块
+	 **/
+	var Deferred = {
+		Deferred:function(func){
+			var tuples = [
+				['resolve','done',Ef.Callbacks(),'resolved'],
+				['reject','fail',Ef.Callbacks(),'rejected'],
+				['notify','progress',Ef.Callbacks()]
+			],
+			promise={},
+			deferred={};
+			for(var i = 0,len = tuples.length; i< len; i++){
+				var list = tuples[2],
+					stateString = tuples[3];
+				promise[tuples[1]] = list.add;
+
+				if(stateString){
+					list.add(function(){
+						state = stateString;
+					});
+				}
+
+				deferred[tuples[0]] = function(){
+					deferred[tuples[0]+'With'](this === deferred ? promise:this,arguments);
+					return this;
+				};
+				deferred[tuples[0]+'With'] = list.fireWith;
+
+			}
+
+			return deferred;
+		}
+	};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+
 	exports = root.ef = root.$$ = Ef;
 });
