@@ -680,9 +680,11 @@
 		options = typeof options === 'string'
 				 ? (optionsCache[options]||createOptions(options))
 				 : Ef.extnd({},options);
+			//list存储fn
 		var list = [],
 			firing,
 			memory,
+			fired,
 			firingLength,
 			firingIndex,
 			firingStart,
@@ -698,49 +700,81 @@
 			firing = true;
 			for(; list&&firingIndex < firingLength; firingIndex++){
 				if(list[firingIndex].apply(data[0],data[1]) === false&&options.stopOnFalse){
+					// To prevent further calls using add
+					memory = false;
 					break;
 				}
 			}
 			firing = false;
 			//end
+			if(list){
+				//stack = !options.once&&[]，当once = true时, stack=false。
+				//memory = options.memory&&data，
+				//当memory == true&&[context,data]时,memory = [context,data]
+				if(stack){
+					//stack存在的时候表示once一定为false或者undefined
+					//可以多次调用fire方法
+					if(stack.length){
+						//调用在firing的状态缓存的数据
+						fire(stack.shift());
+					}
+				}else if(memory){
+					//once memory同时为true时，
+					//fire调用之后的数据皆清除
+					list = [];
+				}else{
+					//once == true时，disable整个数组
+					self.disable();
+				}
+			}
 		};
 		var self = {
 			add:function(){
-				//add(fn1,fn2) add([fn1,fn2]);
-				var start = list.length;
-				(function add(args){
-					for(var i = 0,len = args.length; i< len; i++){
-						var arg = args[i],
-							type = (typeof arg);
-						if(type === 'function'){
-							//unique == false || unique == undefined 表示不需要去重
-							//unique == true && !self.has(arg)
-							if(!options.unique || !self.has(arg)){
-								list.push(arg);
+				if(list){
+					//add(fn1,fn2) add([fn1,fn2]);
+					var start = list.length;
+					(function add(args){
+						for(var i = 0,len = args.length; i< len; i++){
+							var arg = args[i],
+								type = (typeof arg);
+							if(type === 'function'){
+								//unique == false || unique == undefined 表示不需要去重
+								//unique == true && !self.has(arg)
+								if(!options.unique || !self.has(arg)){
+									list.push(arg);
+								}
+							}else if(arg&&arg.length&& type !== 'string'){
+								add(arg);
 							}
-						}else if(arg&&arg.length&& type !== 'string'){
-							add(arg);
 						}
+					})(arguments);
+					//end
+					if(firing){
+						//在firing的状态中执行完成add
+						//需要重置数组的长度让新添加的
+						//元素可以在fire方法中被执行
+						firingLength = list.length;
+					}else{
+						/*
+							var callback = $$.Callbacks('memory');
+							callback.add([fn1,fn2,fn3]);
+							callback.remove(fn2);
+							callback.fire();
+						*/
+						//memory是缓存下来的参数
+						firingStart = start;
+						fire(memory);
 					}
-				})(arguments);
-				//end
-				if(memory){
-					/*
-						var callback = $$.Callbacks('memory');
-						callback.add([fn1,fn2,fn3]);
-						callback.remove(fn2);
-						callback.fire();
-					*/
-					//memory是缓存下来的参数
-					firingStart = start;
-					fire(memory);
 				}
+				return this;
 			},
 			remove:function(){
-				for(var i = 0,len = arguments.length; i < len; i++){
-					var index;
-					while((index = Ef.inArray(arguments[i],list,index)) > -1){
-						list.splice(index,1);
+				if(list){				
+					for(var i = 0,len = arguments.length; i < len; i++){
+						var index;
+						while((index = Ef.inArray(arguments[i],list,index)) > -1){
+							list.splice(index,1);
+						}
 					}
 				}
 				return this;
@@ -749,13 +783,49 @@
 				self.fireWith(this,arguments);
 			},
 			fireWith:function(context,args){
-				args = args || [];
-				args = [context,args];
-				fire(args);
+				//!fired表示第一次触发fire方法
+				//stack = !options.once&&[]
+				//options.once为true时表示只触发一次
+				//options.once不为true时表示可以多次触发
+				if(list&&(!fired || stack)){
+					args = args || [];
+					args = [context,args.slice?args.slice():args];
+					if(firing){
+						//可以多次调用fire方法，先缓存数据
+						//等到第一次的触发完成后在fire方法中触发
+						stack.push(args);
+					}else{
+						fire(args);	
+					}
+				}
+				return this;
 			},
 			has:function(fn){
-				return fn ? Ef.inArray(fn,list) > -1 : !!(list&&list.length);
-				
+				return fn ? Ef.inArray(fn,list) > -1 : !!(list&&list.length);	
+			},
+			disable:function(){
+				list = stack = memory = undefined;
+				return this;
+			},
+			disabled:function(){
+				return !list;
+			},
+			empty:function(){
+				list = [];
+				firingLength = 0;
+				return this;
+			},
+			lock:function(){
+				//控制stack的状态来控制
+				//是否能够调用fireWith方法
+				stack = undefined;
+				if(!memory){
+					self.disable();
+				}
+				return this;
+			},
+			locked:function(){
+				return !stack;
 			}
 		};
 		return self;

@@ -16,6 +16,7 @@
   <script type="text/javascript">
     function fn1(data) {
       console.log('fn1',data);
+      //callback.fire();
     }
     function fn2(data) {
       console.log('fn2',data);
@@ -25,8 +26,10 @@
     }
     var callback = $$.Callbacks('memory unique stopOnFalse');
     callback.add([fn1,fn2]);
+    window.setTimeout(function(){
+      callback.add(fn3);
+    },0);
     callback.fire();
-    callback.add(fn3);
   </script>
 </body>
   
