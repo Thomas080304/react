@@ -754,7 +754,7 @@
 						//需要重置数组的长度让新添加的
 						//元素可以在fire方法中被执行
 						firingLength = list.length;
-					}else{
+					}else if(memory){
 						/*
 							var callback = $$.Callbacks('memory');
 							callback.add([fn1,fn2,fn3]);
