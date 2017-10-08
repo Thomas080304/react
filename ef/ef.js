@@ -934,9 +934,9 @@
 						//上一个deferred对象的done|fail|progress的回调被调用
 						//回调中判断是否继续执行下一个deferred对象的resolve|fail|progress
 						//还是执行下一个deferred的fireWith方法
-						for(var i = 0,len=tuples.length; i< len; i++){
-							var tuple = tuples[i];
-							deferred[tuple[1]](function(newDefer){
+						Ef.each(tuples,function(i,tuple){
+							deferred[tuple[1]](function(){
+								var fn = (typeof fns[i] === 'function')&&fns[i];
 								var returned = fn&&fn.apply(this,arguments);
 								if( returned 
 									&&(typeof returned.promise === 'function')){
@@ -945,13 +945,13 @@
 											.fail(newDefer.fail)
 											.progress(newDefer.progress);
 								}else{
-									deferred[tuples[0]+'With'](
-										this === deferred ? promise:this,/**context**/
-										fn ? [ returned ] : arguments/**参数**/
+									newDefer[tuple[0] + "With"]( 
+										this === promise ? newDefer.promise() : this,/**context**/
+										fn ? [returned] : arguments/**args**/
 									);
 								}
 							});
-						}
+						});
 					}).promise();
 				},
 				promise:function(obj){

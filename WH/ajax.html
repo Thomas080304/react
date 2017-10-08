@@ -21,8 +21,10 @@
       });
       return defer.promise();
     }
-    aa().done(function(param){
-      console.log('defer---',param);
+    aa()
+    .then(function(param){
+      console.log('then---',param);
+      return param;
     });
   </script>
 </body>
