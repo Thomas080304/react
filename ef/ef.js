@@ -94,6 +94,34 @@
 	 * core utils
 	 **/
 	Ef.extend(Ef,{
+		type:function(obj){
+			//undefined == null true
+			//null == null true
+			//NaN == NaN false
+			if(obj == null){
+				return obj+'';
+			}
+
+			//Boolean Number String---typeof---boolean number string
+			
+			//Function ---> function [object Function]
+			//Array ---> object [object Array]
+			//Date ---> object [object Date]
+			//Object ---> object [object Object]
+			//Error ---> object [object Error]
+			//RegExp ---> object || function [object RegExp]
+
+			//NaN ---> number [object Number]
+			return typeof obj == "object" || typeof obj == "function" ?
+					class2type[{}.toString.call(obj)] || "object" :
+					typeof obj;
+		},
+		isWindow:function(obj){
+			//null.xx undefined.xx == wrong
+			//NaN.property right
+			//window === window.window true
+			return obj != null && obj === obj.window;
+		},
 		inArray:function(elem,arr,i){
 			var len;
 			if(arr){
@@ -106,8 +134,50 @@
 				}
 				return -1;
 			}
+		},
+		each:function(obj,callback){
+			var value,
+				i = 0,
+				length = obj.length,
+				isArray = isArraylike(obj);
+			if(isArraylike){
+				for(;i < length; i++){
+					value = callback.call(obj[i],i,obj[i]);
+					if(value === false){
+						break;
+					}
+				}
+			}else{
+				for(i in obj){
+					value = callbak.call(obj[i],i,obj[i]);
+					if(value === false){
+						break;
+					}
+				}
+			}
 		}
 	});
+	var class2type = {};
+	Ef.each("Boolean Number String Function Array Date RegExp Object Error".split(" "), function(i, name) {
+		class2type[ "[object " + name + "]" ] = name.toLowerCase();
+	});
+	function isArraylike(obj){
+		var length = 'length' in obj&&obj.length,
+			type = Ef.type(obj);
+		if(type === 'function'||Ef.isWindow(obj)){
+			return false;
+		}
+		if(obj.nodeType === 1&&length){
+			return true;
+		}
+		return 	(
+			type === 'array'
+			|| length === 0
+			|| (typeof length === 'number'
+				&&length > 0 
+				&&(length-1) in obj)
+		);
+	}
 	/**
 	 *	事件模块
 	 **/
@@ -837,62 +907,98 @@
 	var Deferred = {
 		Deferred:function(func){
 			var tuples = [
-				['resolve','done',Ef.Callbacks(),'resolved'],
-				['reject','fail',Ef.Callbacks(),'rejected'],
-				['notify','progress',Ef.Callbacks()]
+				['resolve','done',Ef.Callbacks('once memory'),'resolved'],
+				['reject','fail',Ef.Callbacks('once memory'),'rejected'],
+				['notify','progress',Ef.Callbacks('memory')]
 			],
-			promise={},
-			deferred={};
-			for(var i = 0,len = tuples.length; i< len; i++){
-				var list = tuples[2],
-					stateString = tuples[3];
-				promise[tuples[1]] = list.add;
-
-				if(stateString){
-					list.add(function(){
-						state = stateString;
-					});
+			state = 'pending',
+			promise={
+				state:function(){
+					return state;
+				},
+				aways:function(){
+					deferred.done(arguments).fail(arguments);
+					return this;
+				},
+				then:function(/* fnDone, fnFail, fnProgress */){
+					var fns = arguments;
+					//前提：callback是once memory触发完成之后就
+					//disable不能继续触发
+					//Ef.Deferred(function(newDefer){})
+					//1.Ef.Deferred() 返回一个deferred对象
+					//2.Ef.Deferred(function(newDefer){}) newDefer对象
+					//是上一步创建的deferred对象
+					return Ef.Deferred(function(newDefer){
+						//为上一个deferred对象添加done|fail|progress回调
+						//当上一个deferred对象执行resolve|reject|notify等方法时
+						//上一个deferred对象的done|fail|progress的回调被调用
+						//回调中判断是否继续执行下一个deferred对象的resolve|fail|progress
+						//还是执行下一个deferred的fireWith方法
+						for(var i = 0,len=tuples.length; i< len; i++){
+							var tuple = tuples[i];
+							deferred[tuple[1]](function(newDefer){
+								var returned = fn&&fn.apply(this,arguments);
+								if( returned 
+									&&(typeof returned.promise === 'function')){
+									returned.promise()
+											.done(newDefer.resovle)
+											.fail(newDefer.fail)
+											.progress(newDefer.progress);
+								}else{
+									deferred[tuples[0]+'With'](
+										this === deferred ? promise:this,/**context**/
+										fn ? [ returned ] : arguments/**参数**/
+									);
+								}
+							});
+						}
+					}).promise();
+				},
+				promise:function(obj){
+					return (obj != null 
+							? Ef.extend(obj,promise)
+							: promise);
 				}
-
-				deferred[tuples[0]] = function(){
-					deferred[tuples[0]+'With'](this === deferred ? promise:this,arguments);
+			},
+			deferred={};
+			promise.pipe = promise.then;
+			Ef.each(tuples,function(i,tuple){
+				var list = tuple[2],
+					stateString = tuple[3];
+				//promise[done | fail | progress] = callbak.add
+				promise[tuple[1]] = list.add;
+				//stateString = resolved | rejected
+				if(stateString){
+					list.add(
+						function(){
+							state = stateString;
+						},/**修改state**/
+						tuples[i^1][2].disable,/**done|fail callback.disable**/
+						tuples[2][2].lock/**progress callbak.lock**/
+					);
+				}
+				//deferred[resovle | reject | notify] = callback.fireWith
+				//deferred[resovleWith | rejectWith | notifyWith] = callback.fireWith
+				//fireWith(this === deferred ? promise:this,arguments);
+				deferred[tuple[0]] = function(){
+					deferred[tuple[0]+'With'](this === deferred ? promise:this,arguments);
 					return this;
 				};
-				deferred[tuples[0]+'With'] = list.fireWith;
-
+				deferred[tuple[0]+'With'] = list.fireWith;
+			});
+			//为deferred对象extend promise的方法
+			promise.promise(deferred);
+			/**
+			 *	promise对象方法: state aways then promise pipe done fail progress
+			 *	deferred对象方法: resolve reject notify + promise对象方法
+			 **/
+			if(func){
+				func.call(deferred,deferred);
 			}
-
 			return deferred;
 		}
 	};
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	
-
+	Ef.extend(Ef,Deferred);
+	//end
 	exports = root.ef = root.$$ = Ef;
 });

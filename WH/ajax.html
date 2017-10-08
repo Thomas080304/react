@@ -14,22 +14,16 @@
   <div id="wrap"></div>
   <script type="text/javascript" src="../ef/ef.js"></script>
   <script type="text/javascript">
-    function fn1(data) {
-      console.log('fn1',data);
-      //callback.fire();
+    function aa(){
+      var defer = $$.Deferred();
+      window.setTimeout(function(){
+        defer.resolve({a:1});
+      });
+      return defer.promise();
     }
-    function fn2(data) {
-      console.log('fn2',data);
-    }
-    function fn3(data) {
-      console.log('fn3',data);
-    }
-    var callback = $$.Callbacks('memory unique stopOnFalse');
-    callback.add([fn1,fn2]);
-    window.setTimeout(function(){
-      callback.add(fn3);
-    },0);
-    callback.fire();
+    aa().done(function(param){
+      console.log('defer---',param);
+    });
   </script>
 </body>
   
